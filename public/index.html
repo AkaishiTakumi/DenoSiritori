@@ -48,6 +48,13 @@
         }
       );
 
+      // status: 200以外が返ってきた場合にエラーを表示
+      if (response.status !== 200) {
+        const errorJson = await response.text();
+        const errorObj = JSON.parse(errorJson);
+        alert(errorObj["errorMessage"]);
+      }
+
       const previousWord = await response.text();
 
       // id: previousWordのタグを取得
