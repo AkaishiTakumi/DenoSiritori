@@ -52,7 +52,18 @@
       if (response.status !== 200) {
         const errorJson = await response.text();
         const errorObj = JSON.parse(errorJson);
-        alert(errorObj["errorMessage"]);
+        // errorObj["errorCode"]ごとに処理を分岐する
+        // errorCodeが、末尾が「ん」の時のエラーだったら、ゲームを終了する
+        if (errorObj["errorCode"] === "10002") {
+          alert("ゲーム終了");
+
+          // inputタグと送信ボタンを無効化する
+          nextWordInput.disabled = true;
+          document.querySelector("#nextWordSendButton").disabled = true;
+        } else {
+          alert(errorObj["errorMessage"]);
+        }
+        return;
       }
 
       const previousWord = await response.text();
