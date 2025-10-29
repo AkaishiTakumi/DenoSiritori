@@ -18,6 +18,17 @@
   <!-- JavaScriptを実行 -->
   <script>
     window.onload = async (event) => {
+      // 試しでPOST /shiritoriを実行してみる
+      // りんごと入力……
+      await fetch(
+        "/shiritori",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nextWord: "りんご" })
+        }
+      );
+
       // GET /shiritoriを実行
       const response = await fetch("/shiritori", { method: "GET" });
       // responseの中からレスポンスのテキストデータを取得
