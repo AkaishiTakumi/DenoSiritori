@@ -26,6 +26,20 @@ Deno.serve(async (_req) => {
         if (previousWord.slice(-1) === nextWord.slice(0, 1)) {
             // 同一であれば、previousWordを更新
             previousWord = nextWord;
+        } // 同一でない単語の入力時に、エラーを返す
+        else {
+            return new Response(
+                JSON.stringify({
+                    "errorMessage": "前の単語に続いていません",
+                    "errorCode": "10001",
+                }),
+                {
+                    status: 400,
+                    headers: {
+                        "Content-Type": "application/json; charset=utf-8",
+                    },
+                },
+            );
         }
 
         // 現在の単語を返す
