@@ -17,6 +17,7 @@
   <!-- 次の文字を入力するフォーム -->
   <input id="nextWordInput" type="text" />
   <button id="nextWordSendButton">送信</button>
+  <button id="resetSendButton">リセット</button>
 
   <!-- JavaScriptを実行 -->
   <script>
@@ -52,7 +53,18 @@
       if (response.status !== 200) {
         const errorJson = await response.text();
         const errorObj = JSON.parse(errorJson);
-        alert(errorObj["errorMessage"]);
+        // errorObj["errorCode"]ごとに処理を分岐する
+        // errorCodeが、末尾が「ん」の時のエラーだったら、ゲームを終了する
+        if (errorObj["errorCode"] === "10002") {
+          alert("ゲーム終了");
+
+          // inputタグと送信ボタンを無効化する
+          nextWordInput.disabled = true;
+          document.querySelector("#nextWordSendButton").disabled = true;
+        } else {
+          alert(errorObj["errorMessage"]);
+        }
+        return;
       }
 
       const previousWord = await response.text();
@@ -63,6 +75,14 @@
       paragraph.innerHTML = `前の単語: ${previousWord}`;
       // inputタグの中身を消去する
       nextWordInput.value = "";
+    }
+
+    // 送信ボタンの押下時に実行
+    document.querySelector("#resetSendButton").onclick = async (event) => {
+      // POST /resetを実行
+      await fetch("/reset", { method: "POST" });
+      // ページをリロードする
+      location.reload();
     }
   </script>
 </body>

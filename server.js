@@ -1,7 +1,7 @@
 import { serveDir } from "jsr:@std/http/file-server";
 
 // 直前の単語を保持しておく
-let previousWord = "しりとり";
+const wordHistories = ["しりとり"];
 
 // localhostにDenoのHTTPサーバーを展開
 Deno.serve(async (_req) => {
@@ -12,7 +12,7 @@ Deno.serve(async (_req) => {
 
     // GET /shiritori: 直前の単語を返す
     if (_req.method === "GET" && pathname === "/shiritori") {
-        return new Response(previousWord);
+        return new Response(wordHistories.slice(-1)[0]);
     }
 
     // POST /shiritori: 次の単語を受け取って保存する
@@ -23,9 +23,44 @@ Deno.serve(async (_req) => {
         const nextWord = requestJson["nextWord"];
 
         // previousWordの末尾とnextWordの先頭が同一か確認
-        if (previousWord.slice(-1) === nextWord.slice(0, 1)) {
+        if (wordHistories.slice(-1)[0].slice(-1) === nextWord.slice(0, 1)) {
+            // 過去に使用した単語になっている場合
+            if (wordHistories.includes(nextWord)) {
+                return new Response(
+                    JSON.stringify({
+                        "errorMessage": "過去に使用した単語は使えません",
+                        "errorCode": "10003",
+                    }),
+                    {
+                        status: 400,
+                        headers: {
+                            "Content-Type": "application/json; charset=utf-8",
+                        },
+                    },
+                );
+            }
+
+            // 末尾が「ん」になっている場合
+            // ifの中に入力された単語の末尾が「ん」になっていることを確認する条件式を追加
+            if (nextWord.slice(-1) === "ん") {
+                // エラーを返す処理を追加
+                // errorCodeを固有のものにして、末尾が「ん」の時に発生したエラーだとWeb側に通知できるようにする
+                return new Response(
+                    JSON.stringify({
+                        "errorMessage": "「ん」で終わる単語は使えません",
+                        "errorCode": "10002",
+                    }),
+                    {
+                        status: 400,
+                        headers: {
+                            "Content-Type": "application/json; charset=utf-8",
+                        },
+                    },
+                );
+            }
+
             // 同一であれば、previousWordを更新
-            previousWord = nextWord;
+            wordHistories.push(nextWord);
         } // 同一でない単語の入力時に、エラーを返す
         else {
             return new Response(
@@ -43,7 +78,17 @@ Deno.serve(async (_req) => {
         }
 
         // 現在の単語を返す
-        return new Response(previousWord);
+        return new Response(wordHistories.slice(-1)[0]);
+    }
+
+    // POST /reset: リセットする
+    // _req.methodとpathnameを確認
+    if (_req.method === "POST" && pathname === "/reset") {
+        // 既存の単語の履歴を初期化する
+        // 初期化した単語を返す
+        wordHistories.length = 0;
+        wordHistories.push("しりとり");
+        return new Response(wordHistories.slice(-1)[0]);
     }
 
     // ./public以下のファイルを公開
