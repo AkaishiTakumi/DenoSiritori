@@ -81,6 +81,16 @@ Deno.serve(async (_req) => {
         return new Response(wordHistories.slice(-1)[0]);
     }
 
+    // POST /reset: リセットする
+    // _req.methodとpathnameを確認
+    if (_req.method === "POST" && pathname === "/reset") {
+        // 既存の単語の履歴を初期化する
+        // 初期化した単語を返す
+        wordHistories.length = 0;
+        wordHistories.push("しりとり");
+        return new Response(wordHistories.slice(-1)[0]);
+    }
+
     // ./public以下のファイルを公開
     return serveDir(
         _req,
