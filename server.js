@@ -24,6 +24,22 @@ Deno.serve(async (_req) => {
 
         // previousWordの末尾とnextWordの先頭が同一か確認
         if (wordHistories.slice(-1)[0].slice(-1) === nextWord.slice(0, 1)) {
+            // ひらがな以外が入力された場合
+            if (!/^[ぁ-んー]+$/.test(nextWord)) {
+                return new Response(
+                    JSON.stringify({
+                        "errorMessage": "ひらがな以外の文字は使えません",
+                        "errorCode": "10004",
+                    }),
+                    {
+                        status: 400,
+                        headers: {
+                            "Content-Type": "application/json; charset=utf-8",
+                        },
+                    },
+                );
+            }
+
             // 過去に使用した単語になっている場合
             if (wordHistories.includes(nextWord)) {
                 return new Response(
