@@ -24,6 +24,22 @@ Deno.serve(async (_req) => {
 
         // previousWordの末尾とnextWordの先頭が同一か確認
         if (wordHistories.slice(-1)[0].slice(-1) === nextWord.slice(0, 1)) {
+            // 過去に使用した単語になっている場合
+            if (wordHistories.includes(nextWord)) {
+                return new Response(
+                    JSON.stringify({
+                        "errorMessage": "過去に使用した単語は使えません",
+                        "errorCode": "10003",
+                    }),
+                    {
+                        status: 400,
+                        headers: {
+                            "Content-Type": "application/json; charset=utf-8",
+                        },
+                    },
+                );
+            }
+
             // 末尾が「ん」になっている場合
             // ifの中に入力された単語の末尾が「ん」になっていることを確認する条件式を追加
             if (nextWord.slice(-1) === "ん") {
