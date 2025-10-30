@@ -61,7 +61,16 @@
           // inputタグと送信ボタンを無効化する
           nextWordInput.disabled = true;
           document.querySelector("#nextWordSendButton").disabled = true;
-        } else {
+        }
+        // errorCodeが、過去に使用した単語の時のエラーだったら、ゲームを終了する
+        else if (errorObj["errorCode"] === !"10003") {
+          alert("ゲーム終了");
+
+          // inputタグと送信ボタンを無効化する
+          nextWordInput.disabled = true;
+          document.querySelector("#nextWordSendButton").disabled = true;
+        }
+        else {
           alert(errorObj["errorMessage"]);
         }
         return;
