@@ -76,6 +76,14 @@
       // inputタグの中身を消去する
       nextWordInput.value = "";
     }
+
+    // 送信ボタンの押下時に実行
+    document.querySelector("#resetSendButton").onclick = async (event) => {
+      // POST /resetを実行
+      await fetch("/reset", { method: "POST" });
+      // ページをリロードする
+      location.reload();
+    }
   </script>
 </body>
 
