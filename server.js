@@ -1,7 +1,7 @@
 import { serveDir } from "jsr:@std/http/file-server";
 
 // 直前の単語を保持しておく
-let previousWord = "しりとり";
+const wordHistories = ["しりとり"];
 
 // localhostにDenoのHTTPサーバーを展開
 Deno.serve(async (_req) => {
@@ -12,7 +12,7 @@ Deno.serve(async (_req) => {
 
     // GET /shiritori: 直前の単語を返す
     if (_req.method === "GET" && pathname === "/shiritori") {
-        return new Response(previousWord);
+        return new Response(wordHistories.slice(-1)[0]);
     }
 
     // POST /shiritori: 次の単語を受け取って保存する
@@ -23,7 +23,7 @@ Deno.serve(async (_req) => {
         const nextWord = requestJson["nextWord"];
 
         // previousWordの末尾とnextWordの先頭が同一か確認
-        if (previousWord.slice(-1) === nextWord.slice(0, 1)) {
+        if (wordHistories.slice(-1)[0].slice(-1) === nextWord.slice(0, 1)) {
             // 末尾が「ん」になっている場合
             // ifの中に入力された単語の末尾が「ん」になっていることを確認する条件式を追加
             if (nextWord.slice(-1) === "ん") {
@@ -44,7 +44,7 @@ Deno.serve(async (_req) => {
             }
 
             // 同一であれば、previousWordを更新
-            previousWord = nextWord;
+            wordHistories.push(nextWord);
         } // 同一でない単語の入力時に、エラーを返す
         else {
             return new Response(
@@ -62,7 +62,7 @@ Deno.serve(async (_req) => {
         }
 
         // 現在の単語を返す
-        return new Response(previousWord);
+        return new Response(wordHistories.slice(-1)[0]);
     }
 
     // ./public以下のファイルを公開
