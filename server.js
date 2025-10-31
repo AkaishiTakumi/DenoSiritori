@@ -40,6 +40,22 @@ Deno.serve(async (_req) => {
                 );
             }
 
+            // 一文字の単語を入力した場合
+            if (nextWord.length === 1) {
+                return new Response(
+                    JSON.stringify({
+                        "errorMessage": "一文字の単語は使えません",
+                        "errorCode": "10005",
+                    }),
+                    {
+                        status: 400,
+                        headers: {
+                            "Content-Type": "application/json; charset=utf-8",
+                        },
+                    },
+                );
+            }
+
             // 過去に使用した単語になっている場合
             if (wordHistories.includes(nextWord)) {
                 return new Response(
