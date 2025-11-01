@@ -22,8 +22,79 @@ Deno.serve(async (_req) => {
         // JSONの中からnextWordを取得
         const nextWord = requestJson["nextWord"];
 
-        // previousWordの末尾とnextWordの先頭が同一か確認
-        if (wordHistories.slice(-1)[0].slice(-1) === nextWord.slice(0, 1)) {
+        let minChar;
+        let matchCheck = false;
+
+        console.log(
+            "/[ぁぃぅぇぉっゃゅょゎ]$/.test(wordHistories.slice(-1)[0]): " +
+                /[ぁぃぅぇぉっゃゅょゎ]$/.test(wordHistories.slice(-1)[0]),
+        );
+
+        console.log(
+            "wordHistories.slice(-1)[0].slice(-2) === nextWord.slice(0, 2): " +
+                (wordHistories.slice(-1)[0].slice(-2) ===
+                    nextWord.slice(0, 2)),
+        );
+
+        console.log(
+            "wordHistories.slice(-1)[0].slice(-2): " +
+                wordHistories.slice(-1)[0].slice(-2),
+        );
+        console.log("nextWord.slice(0, 2): " + nextWord.slice(0, 2));
+
+        // wordHistoriesの末尾2文字とnextWordの先頭2文字が同一か確認
+        if (
+            /[ぁぃぅぇぉっゃゅょゎ]$/.test(wordHistories.slice(-1)[0])
+        ) {
+            if (wordHistories.slice(-1)[0].slice(-2) === nextWord.slice(0, 2)) {
+                // 小音が末尾の場合は2文字以下を禁止
+                minChar = 2;
+
+                matchCheck = true;
+            } // wordHistoriesの末尾とnextWordの先頭が同一か確認
+        } else if (
+            wordHistories.slice(-1)[0].slice(-1) === nextWord.slice(0, 1)
+        ) {
+            // 通常文字数は1文字以下を禁止
+            minChar = 1;
+
+            matchCheck = true;
+        }
+
+        //
+        if (matchCheck) {
+            // ひらがな以外が入力された場合
+            if (!/^[ぁ-んー]+$/.test(nextWord)) {
+                return new Response(
+                    JSON.stringify({
+                        "errorMessage": "ひらがな以外の文字は使えません",
+                        "errorCode": "10004",
+                    }),
+                    {
+                        status: 400,
+                        headers: {
+                            "Content-Type": "application/json; charset=utf-8",
+                        },
+                    },
+                );
+            }
+
+            // 一文字の単語を入力した場合
+            if (nextWord.length === minChar) {
+                return new Response(
+                    JSON.stringify({
+                        "errorMessage": "一文字の単語は使えません",
+                        "errorCode": "10005",
+                    }),
+                    {
+                        status: 400,
+                        headers: {
+                            "Content-Type": "application/json; charset=utf-8",
+                        },
+                    },
+                );
+            }
+
             // 過去に使用した単語になっている場合
             if (wordHistories.includes(nextWord)) {
                 return new Response(
@@ -59,7 +130,7 @@ Deno.serve(async (_req) => {
                 );
             }
 
-            // 同一であれば、previousWordを更新
+            // 同一であれば、wordHistoriesを更新
             wordHistories.push(nextWord);
         } // 同一でない単語の入力時に、エラーを返す
         else {
