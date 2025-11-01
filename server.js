@@ -25,23 +25,6 @@ Deno.serve(async (_req) => {
         let minChar;
         let matchCheck = false;
 
-        console.log(
-            "/[ぁぃぅぇぉっゃゅょゎ]$/.test(wordHistories.slice(-1)[0]): " +
-                /[ぁぃぅぇぉっゃゅょゎ]$/.test(wordHistories.slice(-1)[0]),
-        );
-
-        console.log(
-            "wordHistories.slice(-1)[0].slice(-2) === nextWord.slice(0, 2): " +
-                (wordHistories.slice(-1)[0].slice(-2) ===
-                    nextWord.slice(0, 2)),
-        );
-
-        console.log(
-            "wordHistories.slice(-1)[0].slice(-2): " +
-                wordHistories.slice(-1)[0].slice(-2),
-        );
-        console.log("nextWord.slice(0, 2): " + nextWord.slice(0, 2));
-
         // wordHistoriesの末尾2文字とnextWordの先頭2文字が同一か確認
         if (
             /[ぁぃぅぇぉっゃゅょゎ]$/.test(wordHistories.slice(-1)[0])
