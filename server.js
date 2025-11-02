@@ -1,18 +1,21 @@
 import { serveDir } from "jsr:@std/http/file-server";
 
 // 直前の単語を保持しておく
-const wordHistories = ["しりとり"];
+const wordHistories = [];
 
 // localhostにDenoのHTTPサーバーを展開
 Deno.serve(async (_req) => {
     // パス名を取得する
     // http://localhost:8000/hoge に接続した場合"/hoge"が取得できる
     const pathname = new URL(_req.url).pathname;
-    console.log(`pathname: ${pathname}`);
 
     // GET /shiritori: 直前の単語を返す
     if (_req.method === "GET" && pathname === "/shiritori") {
-        return new Response(wordHistories.slice(-1)[0]);
+        return new Response(
+            wordHistories.slice(-1)[0]
+                ? wordHistories.slice(-1)[0]
+                : "しりとり",
+        );
     }
 
     // POST /shiritori: 次の単語を受け取って保存する
@@ -21,22 +24,23 @@ Deno.serve(async (_req) => {
         const requestJson = await _req.json();
         // JSONの中からnextWordを取得
         const nextWord = requestJson["nextWord"];
+        const previousWord = requestJson["previousWord"];
 
         let minChar;
         let matchCheck = false;
 
         // wordHistoriesの末尾2文字とnextWordの先頭2文字が同一か確認
         if (
-            /[ぁぃぅぇぉっゃゅょゎ]$/.test(wordHistories.slice(-1)[0])
+            /[ぁぃぅぇぉっゃゅょゎ]$/.test(previousWord)
         ) {
-            if (wordHistories.slice(-1)[0].slice(-2) === nextWord.slice(0, 2)) {
+            if (previousWord.slice(-2) === nextWord.slice(0, 2)) {
                 // 小音が末尾の場合は2文字以下を禁止
                 minChar = 2;
 
                 matchCheck = true;
             } // wordHistoriesの末尾とnextWordの先頭が同一か確認
         } else if (
-            wordHistories.slice(-1)[0].slice(-1) === nextWord.slice(0, 1)
+            previousWord.slice(-1) === nextWord.slice(0, 1)
         ) {
             // 通常文字数は1文字以下を禁止
             minChar = 1;
@@ -79,7 +83,7 @@ Deno.serve(async (_req) => {
             }
 
             // 過去に使用した単語になっている場合
-            if (wordHistories.includes(nextWord)) {
+            if (wordHistories.includes(nextWord) || previousWord === nextWord) {
                 return new Response(
                     JSON.stringify({
                         "errorMessage": "過去に使用した単語は使えません",
@@ -114,11 +118,12 @@ Deno.serve(async (_req) => {
             }
 
             // 同一であれば、wordHistoriesを更新
-            wordHistories.push(nextWord);
+            wordHistories.push(previousWord);
         } // 同一でない単語の入力時に、エラーを返す
         else {
             return new Response(
                 JSON.stringify({
+                    "previousWord": previousWord,
                     "errorMessage": "前の単語に続いていません",
                     "errorCode": "10001",
                 }),
@@ -132,7 +137,15 @@ Deno.serve(async (_req) => {
         }
 
         // 現在の単語を返す
-        return new Response(wordHistories.slice(-1)[0]);
+        return new Response(
+            JSON.stringify({ "previousWord": nextWord }),
+            {
+                status: 200,
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8",
+                },
+            },
+        );
     }
 
     // POST /reset: リセットする
@@ -141,8 +154,15 @@ Deno.serve(async (_req) => {
         // 既存の単語の履歴を初期化する
         // 初期化した単語を返す
         wordHistories.length = 0;
-        wordHistories.push("しりとり");
-        return new Response(wordHistories.slice(-1)[0]);
+        return new Response(
+            JSON.stringify({ "previousWord": "しりとり" }),
+            {
+                status: 200,
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8",
+                },
+            },
+        );
     }
 
     // ./public以下のファイルを公開
